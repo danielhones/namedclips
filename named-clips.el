@@ -1,9 +1,21 @@
 (setq *named-clips-table* (make-hash-table :test 'equal))
-(setq named-clips-keybinding-prefix "C-c n")
+
+(if (not (boundp 'named-clips-keybinding-prefix)) (setq named-clips-keybinding-prefix "C-c n"))
 
 
 (defun nclip-add-clip-with-name (name clip)
   (puthash name clip *named-clips-table*))
+
+
+(defun nclip-add-clip-with-name-check-exists (name clip)
+  "Adds a named clip to the hash table but will prompt for confirmation when doing so will \
+overwrite an existing entry in the table"
+  (if (gethash name *named-clips-table*)
+      (if (y-or-n-p "A clip with that name already exists. Overwrite? ")
+          (nclip-add-clip-with-name name clip)
+        (message "No clip created")
+        nil)
+    (nclip-add-clip-with-name name clip)))
 
 
 (defun nclip-get-clip-with-name (name)
@@ -31,6 +43,7 @@
 
 
 (defun nclip-show-all-named-clips ()
+  "Show a buffer that lists all the currently defined named clips and the content for each"
   (interactive)
   ;; TODO: it would be nice if these listed either in alphabetical order
   ;;       or reverse chronological order by the order they were defined
@@ -56,34 +69,39 @@
 
 
 (defun nclip-name-last-kill-text (name)
+  "Copy the last thing you put on the kill ring and make it a named clip"
   (interactive "sName for clip: ")
   (let ((clip (substring-no-properties (current-kill 0 t))))
-        (nclip-add-clip-with-name name clip)
-        (message (concat "Copied clip to " name))))
+        (if (nclip-add-clip-with-name-check-exists name clip)
+            (message (concat "Copied clip to " name)))))
 
 
 (defun nclip-name-region-as-clip (name)
+  "Copy the current region and make it a named clip"
   ;; TODO: need to check if region is even active, skip prompt and show message if not
   (interactive "sName for clip: ")
   (let ((clip (buffer-substring-no-properties (region-beginning) (region-end)))
         (mark (mark t))
         (point (point)))
-    (nclip-add-clip-with-name name clip)
-    (deactivate-mark)
-    (set-marker (mark-marker) (point) (current-buffer))
-    (goto-char mark)
-    (set-marker (mark-marker) mark (current-buffer))
-    (goto-char point)
-    (message (concat "Copied region to " name))))
+    (when (nclip-add-clip-with-name-check-exists name clip)
+      (message (concat "Copied region to " name))
+      (deactivate-mark)
+      (set-marker (mark-marker) (point) (current-buffer))
+      (goto-char mark)
+      (set-marker (mark-marker) mark (current-buffer))
+      (goto-char point))))
 
 
 (defun nclip-name-region-or-last-kill (name)
+  "If there is a currently active region, make it a named clip, otherwise copy the last thing you \
+put on the kill ring and make it a named clip."
   (interactive "sName for clip: ")
   (if (region-active-p) (nclip-name-region-as-clip name)
     (nclip-name-last-kill-text name)))
 
 
 (defun nclip-insert-named-clip (name)
+  "Insert a named clip at point in the current buffer."
   (interactive
    (list (completing-read "Name of clip: " (nclip-clip-names))))
   (insert (nclip-get-clip-with-name name)))
