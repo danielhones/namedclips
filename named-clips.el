@@ -1,4 +1,5 @@
 (setq *named-clips-table* (make-hash-table :test 'equal))
+(setq *named-clips-shortcuts* (make-hash-table :test 'equal))
 
 (if (not (boundp 'named-clips-keybinding-prefix)) (setq named-clips-keybinding-prefix "C-c n"))
 
@@ -34,6 +35,14 @@ overwrite an existing entry in the table"
   (when confirm
     (clrhash *named-clips-table*)
     (message "Cleared table of named clips")))
+
+
+(defun nclip-get-shortcut-clip (name)
+  (gethash name *named-clips-shortcuts*))
+
+
+(defun nclip-set-shortcut-clip (shortcut name)
+  (puthash shortcut name *named-clips-shortcuts*))
 
 
 (defun nclip-clip-names ()
@@ -104,7 +113,27 @@ put on the kill ring and make it a named clip."
   "Insert a named clip at point in the current buffer."
   (interactive
    (list (completing-read "Name of clip: " (nclip-clip-names))))
-  (insert (nclip-get-clip-with-name name)))
+  (insert (nclip-get-clip-with-name name))
+  (nclip-set-shortcut-clip "last" name))
+
+
+(defun nclip-put-named-clip-on-clipboard (name)
+  "Put a named clip on the system clipboard and add it to the kill ring"
+  (interactive
+   (list (completing-read "Name of clip: " (nclip-clip-names))))
+  (kill-new (nclip-get-clip-with-name name)))
+
+
+(defun nclip-insert-last-named-clip ()
+  "Insert the named clip that was last inserted"
+  (interactive)
+  (let ((last-clip (nclip-get-shortcut-clip "last")))
+    (if last-clip (nclip-insert-named-clip last-clip)
+      (message "No named clip has been used yet"))))
+
+
+;; TODO: add quick shortcuts to refer to insert often-used clips, eg C-c n (0..9)
+;; TODO: add way to assign quick shortcuts C-c n a (0..9)  (assign region or prompt for clipname)
 
 
 (defun nclip-set-keybindings (&optional prefix)
@@ -113,8 +142,10 @@ put on the kill ring and make it a named clip."
     (global-set-key (kbd (concat kb-prefix " w")) 'nclip-name-region-as-clip)
     (global-set-key (kbd (concat kb-prefix " k")) 'nclip-name-last-kill-text)
     (global-set-key (kbd (concat kb-prefix " i")) 'nclip-insert-named-clip)
+    (global-set-key (kbd (concat kb-prefix " c")) 'nclip-put-named-clip-on-clipboard)
     (global-set-key (kbd (concat kb-prefix " l")) 'nclip-show-all-named-clips)
     (global-set-key (kbd (concat kb-prefix " r")) 'nclip-remove-clip-with-name)
+    (global-set-key (kbd (concat kb-prefix " q")) 'nclip-insert-last-named-clip)
     (global-set-key (kbd (concat kb-prefix " X")) 'nclip-clear-all-named-clips)))
 
 

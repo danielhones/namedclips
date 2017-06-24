@@ -3,7 +3,7 @@
 Give persistent names to things you copy and paste so you don't have to go through the whole kill ring til you find what you need.
 
 
-# Installing
+## Installing
 
 Copy the `named-clips.el` file into your .emacs.d directory and add this line to init.el:
 
@@ -11,7 +11,7 @@ Copy the `named-clips.el` file into your .emacs.d directory and add this line to
 (load "~/.emacs.d/named-clips.el")
 ```
 
-Or you could put it at some other path and load that path instead.  If you prefer a different prefix for the keybindings, set the `named-clips-keybinding-prefix` before loading the file, or call `nclip-set-keybindings` with a new prefix as the argument:
+Or you could put it at some other path and load that path instead.  If you prefer a different prefix for the keybindings, set the `named-clips-keybinding-prefix` variable before loading the file, or call `nclip-set-keybindings` with a new prefix as the argument:
 
 ```lisp
 ;; This works:
@@ -24,7 +24,7 @@ Or you could put it at some other path and load that path instead.  If you prefe
 ```
 
 
-# Commands and Keybindings
+## Commands and Keybindings
 
 All keybindings have a common prefix followed by a single key.  `C-c n` is the default prefix and here are the default keybindings for the commands:
 
@@ -34,6 +34,7 @@ All keybindings have a common prefix followed by a single key.  `C-c n` is the d
 | `C-c n w`     | Name active region as a clip |
 | `C-c n k`     | Name last item on the kill ring |
 | `C-c n i`     | Insert named clip at point in current buffer |
+| `C-c n c`     | Put nammed clip on the system clipboard and add it to the kill ring |
 | `C-c n l`     | Show list of all currently defined named clips |
 | `C-c n r`     | Remove clip with name |
 | `C-c n X`     | Clear all named clips |
